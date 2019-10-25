@@ -13,6 +13,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'company_drawer.dart';
 
 class CompanyViewTenders extends StatefulWidget {
+  String userId;
+  String userName;
+
+  CompanyViewTenders({this.userId, this.userName});
+
   @override
   State createState() => _ViewTendersState();
 }
@@ -123,7 +128,10 @@ class _ViewTendersState extends State<CompanyViewTenders>
                                         ? TodoList(
                                             document: snapshot.data.documents,
                                             animationController:
-                                                animationController)
+                                                animationController,
+                                            userId: widget.userId,
+                                            userName: widget.userName,
+                                          )
                                         : Center(
                                             child: CircularProgressIndicator());
                                   }
@@ -402,8 +410,16 @@ class TodoList extends StatelessWidget {
   final List<DocumentSnapshot> document;
   AnimationController animationController;
   final SharedPreferences prefs;
+  String userId;
+  String userName;
   //constructor
-  TodoList({Key key, this.document, this.animationController, this.prefs})
+  TodoList(
+      {Key key,
+      this.document,
+      this.animationController,
+      this.prefs,
+      this.userId,
+      this.userName})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -431,10 +447,13 @@ class TodoList extends StatelessWidget {
         tender.winner = document[index].data['winner'].toString();
 
         return TendersListView(
-            callback: () {},
-            tender: tender,
-            animation: animation,
-            animationController: animationController);
+          callback: () {},
+          tender: tender,
+          animation: animation,
+          animationController: animationController,
+          userId: userId,
+          userName: userName,
+        );
       },
     );
   }

@@ -6,6 +6,8 @@ import 'package:flutter_my_chat/ui/screens/sign_in.dart';
 import 'package:flutter_my_chat/util/auth.dart';
 import 'package:flutter_my_chat/util/state_widget.dart';
 
+import 'view_tenders.dart';
+
 class CompanyDrawer extends StatelessWidget {
   CompanyDrawer({this.auth, this.onSignedOut});
 
@@ -26,7 +28,7 @@ class CompanyDrawer extends StatelessWidget {
     } else {
       final email = appState?.firebaseUserAuth?.email ?? '';
       final name = appState?.user?.name ?? '';
-
+      final userId = appState?.firebaseUserAuth?.uid ?? '';
       void _signOut() async {
         try {
           await Auth.signOut();
@@ -104,6 +106,14 @@ class CompanyDrawer extends StatelessWidget {
                 Navigator.pop(context);
                 Navigator.of(context)
                     .pushNamed(RouteConstants.COMPANY_VIEW_TENDERS);
+
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (BuildContext context) => CompanyViewTenders(
+                              userId: userId,
+                              userName: name,
+                            )));
               },
             ),
             new ListTile(
@@ -111,8 +121,8 @@ class CompanyDrawer extends StatelessWidget {
               title: new Text('My Tenders'),
               onTap: () {
                 Navigator.pop(context);
-//                Navigator.of(context)
-//                    .pushNamed(RouteConstants.ADMIN_VIEW_CONVERSIONS);
+                Navigator.of(context)
+                    .pushNamed(RouteConstants.COMPANY_WON_TENDERS);
               },
             ),
             new ListTile(

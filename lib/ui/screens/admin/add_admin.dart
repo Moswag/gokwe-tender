@@ -81,7 +81,7 @@ class _AddAdminState extends State<AddAppAdmin> {
       autofocus: false,
       textCapitalization: TextCapitalization.words,
       controller: fullnameController,
-      //validator: Validator.validateName,
+      validator: Validator.validateName,
       decoration: InputDecoration(
         prefixIcon: Padding(
           padding: EdgeInsets.only(left: 5.0),
@@ -119,7 +119,7 @@ class _AddAdminState extends State<AddAppAdmin> {
       keyboardType: TextInputType.number,
       autofocus: false,
       controller: phonenumberController,
-      //validator: Validator.validateNumber,
+      validator: Validator.validateNumber,
       decoration: InputDecoration(
         prefixIcon: Padding(
           padding: EdgeInsets.only(left: 5.0),

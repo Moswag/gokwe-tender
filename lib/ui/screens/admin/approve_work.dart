@@ -1,116 +1,70 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:crypto/crypto.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_my_chat/constants/db_constants.dart';
 import 'package:flutter_my_chat/constants/myconstants.dart';
 import 'package:flutter_my_chat/constants/routes_constants.dart';
+import 'package:flutter_my_chat/models/job.dart';
 import 'package:flutter_my_chat/models/state.dart';
-import 'package:flutter_my_chat/models/tender.dart';
 import 'package:flutter_my_chat/repo/admin_repo.dart';
 import 'package:flutter_my_chat/ui/widgets/loading.dart';
 import 'package:flutter_my_chat/util/alert_dialog.dart';
 import 'package:flutter_my_chat/util/auth.dart';
 import 'package:flutter_my_chat/util/state_widget.dart';
-import 'package:flutter_my_chat/util/validator.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as Path;
 
 import '../sign_in.dart';
 
-class AddTender extends StatefulWidget {
+class ApproveJob extends StatefulWidget {
+  Job job;
+  ApproveJob({this.job});
+
   @override
-  State createState() => _AddTenderState();
+  State createState() => ApproveJobState();
 }
 
-class _AddTenderState extends State<AddTender> {
+class ApproveJobState extends State<ApproveJob> {
   bool _autoValidate = false;
   bool _loadingVisible = false;
-  File _image;
-  String category;
-
-  DateTime selectedDate = DateTime.now();
-  TimeOfDay selectedTime = TimeOfDay.now();
-  bool isTapped = false;
-
-  TextEditingController dateController = new TextEditingController();
-
-  String phonenumber;
-
-  Future<Null> _selectDate(BuildContext context) async {
-    final DateTime picked = await showDatePicker(
-        context: context,
-        initialDate: selectedDate,
-        firstDate: DateTime(2015, 8),
-        lastDate: DateTime(2101));
-    if (picked != null && picked != selectedDate)
-      setState(() {
-        selectedDate = picked;
-        isTapped = true;
-      });
-  }
-
-  Future<Null> _selectTIme(BuildContext context) async {
-    final TimeOfDay picked =
-        await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (picked != null && picked != selectedTime)
-      setState(() {
-        selectedTime = picked;
-        isTapped = true;
-      });
-  }
+  String company;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TextEditingController titleController = new TextEditingController();
+  TextEditingController amountController = new TextEditingController();
   TextEditingController descriptionController = new TextEditingController();
 
-  Future _addTender({Tender tender}) async {
+  Future _addJob({Job job}) async {
     if (_formKey.currentState.validate()) {
       try {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
         await _changeLoadingVisible();
 
-        StorageReference storageReference = FirebaseStorage.instance
-            .ref()
-            .child(
-                PropaneConstants.PATH_POSTS + '${Path.basename(_image.path)}}');
-        StorageUploadTask uploadTask = storageReference.putFile(_image);
-        //String up=uploadTask.
-        await uploadTask.onComplete;
-        print('File Uploaded');
-        storageReference.getDownloadURL().then((fileURL) {
-          setState(() {
-            tender.imageUrl = fileURL;
-            var id = utf8
-                .encode(tender.title + tender.description); // data being hashed
-            tender.id = sha1.convert(id).toString();
+        String company = job.companyName;
+        job.id = company.split("/")[0].toString();
+        job.companyId = company.split("/")[0].toString();
+        job.companyName = company.split("/")[1].toString();
 
-            AdminRepo.addTender(tender).then((onValue) {
-              if (onValue) {
-                AlertDiag.showAlertDialog(context, 'Status',
-                    'Tender Successfully Added', RouteConstants.VIEW_TENDERS);
-              } else {
-                AlertDiag.showAlertDialog(
-                    context,
-                    'Status',
-                    'Failed to add tender, please contact admin',
-                    RouteConstants.VIEW_TENDERS);
-              }
-            });
-          });
+        AdminRepo.addJob(job).then((onValue) {
+          if (onValue) {
+            AlertDiag.showAlertDialog(
+                context,
+                'Status',
+                'Job to ${job.companyName} Successfully created',
+                RouteConstants.VIEW_CLOSED_TENDERS);
+          } else {
+            AlertDiag.showAlertDialog(
+                context,
+                'Status',
+                'Failed to add job, please contact admin',
+                RouteConstants.VIEW_CLOSED_TENDERS);
+          }
         });
       } catch (e) {
         print("Sign Up Error: $e");
         String exception = Auth.getExceptionText(e);
         Flushbar(
-                title: "Adding company failed",
+                title: "Adding job  failed",
                 message: exception,
                 duration: Duration(seconds: 5))
             .show(context);
@@ -162,10 +116,8 @@ class _AddTenderState extends State<AddTender> {
       );
 
       final nameField = TextFormField(
-        autofocus: false,
-        textCapitalization: TextCapitalization.words,
-        controller: titleController,
-        validator: Validator.validateName,
+        enabled: false,
+        //validator: Validator.validateName,
         decoration: InputDecoration(
           prefixIcon: Padding(
             padding: EdgeInsets.only(left: 5.0),
@@ -174,136 +126,62 @@ class _AddTenderState extends State<AddTender> {
               color: Colors.black,
             ), // icon is 48px widget.
           ), // icon is 48px widget.
-          hintText: 'Title',
+          hintText: "TItle: " + widget.job.tenderTitle,
           contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
         ),
       );
-
-      final dateField = TextField(
-        onTap: () {
-          _selectDate(context);
-        },
+      final winnerField = TextFormField(
+        enabled: false,
+        //validator: Validator.validateName,
         decoration: InputDecoration(
           prefixIcon: Padding(
             padding: EdgeInsets.only(left: 5.0),
             child: Icon(
-              Icons.date_range,
+              Icons.title,
               color: Colors.black,
             ), // icon is 48px widget.
           ), // icon is 48px widget.
-          hintText: (this.isTapped)
-              ? this.selectedDate.toString().substring(0, 10)
-              : "Pick Due Date",
+          hintText: "Winner: " + widget.job.companyName,
           contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
         ),
       );
 
-      final timeField = TextField(
-        onTap: () {
-          _selectTIme(context);
-        },
+      final amountField = TextFormField(
+        enabled: false,
+        //validator: Validator.validateName,
         decoration: InputDecoration(
           prefixIcon: Padding(
             padding: EdgeInsets.only(left: 5.0),
             child: Icon(
-              Icons.access_time,
+              Icons.title,
               color: Colors.black,
             ), // icon is 48px widget.
           ), // icon is 48px widget.
-          hintText: (this.isTapped)
-              ? this
-                  .selectedTime
-                  .toString()
-                  .substring(10, selectedTime.toString().length - 1)
-              : "Pick Due Time",
+          hintText: "Amount: " + widget.job.amount.toString(),
           contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
         ),
       );
 
-      final descriptionField = TextFormField(
-        keyboardType: TextInputType.text,
-        autofocus: false,
-        controller: descriptionController,
-        maxLines: 3,
+      final statusField = TextFormField(
+        enabled: false,
+        //validator: Validator.validateName,
         decoration: InputDecoration(
           prefixIcon: Padding(
             padding: EdgeInsets.only(left: 5.0),
             child: Icon(
-              Icons.description,
+              Icons.title,
               color: Colors.black,
             ), // icon is 48px widget.
           ), // icon is 48px widget.
-          hintText: 'Description',
+          hintText: "Status: " + widget.job.workStatus,
           contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
         ),
       );
 
-      final categoryField = StreamBuilder<QuerySnapshot>(
-          stream: Firestore.instance
-              .collection(DBConstants.DB_CATEGORY)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData)
-              return Center(
-                child: CupertinoActivityIndicator(),
-              );
-
-            return Container(
-              padding: EdgeInsets.only(bottom: 16.0),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                      flex: 2,
-                      child: Container(
-                        padding: EdgeInsets.fromLTRB(12.0, 10.0, 10.0, 10.0),
-                        child: Text(
-                          "Category",
-                        ),
-                      )),
-                  new Expanded(
-                    flex: 4,
-                    child: DropdownButton(
-                      value: category,
-                      isDense: true,
-                      onChanged: (valueSelectedByUser) {
-                        _onShopDropItemSelected(valueSelectedByUser);
-                      },
-                      hint: Text('Choose category'),
-                      items: snapshot.data.documents
-                          .map((DocumentSnapshot document) {
-                        return DropdownMenuItem<String>(
-                            value: document.data['category'],
-                            child: Text(document.data['category']));
-                      }).toList(),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          });
-
-      final docField = Column(
-        children: <Widget>[
-          Text('Selected Image'),
-          _image != null
-              ? Image.asset(
-                  _image.path,
-                  height: 150,
-                )
-              : Container(height: 0),
-          _image == null
-              ? RaisedButton(
-                  child: Text('Choose Image'),
-                  onPressed: chooseFile,
-                  color: Colors.cyan,
-                )
-              : Container(),
-        ],
-      );
       final submitButton = Expanded(
         child: RaisedButton(
             shape: RoundedRectangleBorder(
@@ -318,19 +196,11 @@ class _AddTenderState extends State<AddTender> {
             onPressed: () {
               setState(() {
                 debugPrint("Save clicked");
-
-                Tender tender = new Tender();
-                tender.title = titleController.text;
-                tender.description = descriptionController.text;
-                tender.category = category;
-                tender.dueDate = this.selectedDate.toString().substring(0, 10);
-                tender.dueTime = this
-                    .selectedTime
-                    .toString()
-                    .substring(10, selectedTime.toString().length - 1);
-                tender.status = "Pending";
-                tender.date = DateTime.now().toString();
-                _addTender(tender: tender);
+//                String status
+//
+//
+//
+//                _addJob(job: job);
               });
             }),
       );
@@ -366,15 +236,12 @@ class _AddTenderState extends State<AddTender> {
                     SizedBox(height: 48.0),
                     nameField,
                     SizedBox(height: 24.0),
-                    descriptionField,
+                    winnerField,
                     SizedBox(height: 24.0),
-                    categoryField,
+                    amountField,
                     SizedBox(height: 24.0),
-                    dateField,
+                    statusField,
                     SizedBox(height: 24.0),
-                    timeField,
-                    SizedBox(height: 24.0),
-                    docField,
                     Padding(
                       padding: EdgeInsets.all(16),
                       child: Row(
@@ -399,7 +266,7 @@ class _AddTenderState extends State<AddTender> {
             appBar: new AppBar(
               elevation: 0.1,
               backgroundColor: Color.fromRGBO(58, 66, 86, 1.0),
-              title: Text('Add Tender'),
+              title: Text('Approve Job'),
             ),
             body: LoadingScreen(child: form, inAsyncCall: _loadingVisible),
           ));
@@ -416,17 +283,9 @@ class _AddTenderState extends State<AddTender> {
     Navigator.pop(context, true);
   }
 
-  Future chooseFile() async {
-    await ImagePicker.pickImage(source: ImageSource.gallery).then((image) {
-      setState(() {
-        _image = image;
-      });
-    });
-  }
-
   void _onShopDropItemSelected(String newValueSelected) {
     setState(() {
-      this.category = newValueSelected;
+      this.company = newValueSelected;
     });
   }
 }

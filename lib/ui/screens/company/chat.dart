@@ -15,8 +15,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 class Chat extends StatelessWidget {
   final String peerId;
   final String peerAvatar;
+  final String userId;
 
-  Chat({Key key, @required this.peerId, @required this.peerAvatar})
+  Chat({Key key, @required this.peerId, @required this.peerAvatar, this.userId})
       : super(key: key);
 
   @override
@@ -40,8 +41,10 @@ class Chat extends StatelessWidget {
 class ChatScreen extends StatefulWidget {
   final String peerId;
   final String peerAvatar;
+  final String from;
 
-  ChatScreen({Key key, @required this.peerId, @required this.peerAvatar})
+  ChatScreen(
+      {Key key, @required this.peerId, @required this.peerAvatar, this.from})
       : super(key: key);
 
   @override
@@ -50,7 +53,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class ChatScreenState extends State<ChatScreen> {
-  ChatScreenState({Key key, @required this.peerId, @required this.peerAvatar});
+  ChatScreenState(
+      {Key key, @required this.peerId, @required this.peerAvatar, this.id});
 
   String peerId;
   String peerAvatar;

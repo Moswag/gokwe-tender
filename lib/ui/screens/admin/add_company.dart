@@ -19,6 +19,7 @@ import 'package:flutter_my_chat/ui/widgets/loading.dart';
 import 'package:flutter_my_chat/util/alert_dialog.dart';
 import 'package:flutter_my_chat/util/auth.dart';
 import 'package:flutter_my_chat/util/state_widget.dart';
+import 'package:flutter_my_chat/util/validator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as Path;
 
@@ -136,7 +137,7 @@ class _AddPostState extends State<AddCompany> {
         autofocus: false,
         textCapitalization: TextCapitalization.words,
         controller: titleController,
-        //validator: Validator.validateName,
+        validator: Validator.validateName,
         decoration: InputDecoration(
           prefixIcon: Padding(
             padding: EdgeInsets.only(left: 5.0),
@@ -153,9 +154,9 @@ class _AddPostState extends State<AddCompany> {
 
       final uniqueField = TextFormField(
         autofocus: false,
-        textCapitalization: TextCapitalization.words,
+        keyboardType: TextInputType.number,
         controller: uniqueController,
-        //validator: Validator.validateName,
+        //validator: Validator.validateNumber,
         decoration: InputDecoration(
           prefixIcon: Padding(
             padding: EdgeInsets.only(left: 5.0),

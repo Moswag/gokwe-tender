@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_my_chat/constants/db_constants.dart';
 import 'package:flutter_my_chat/models/category.dart';
 import 'package:flutter_my_chat/models/company.dart';
+import 'package:flutter_my_chat/models/job.dart';
 import 'package:flutter_my_chat/models/state.dart';
 import 'package:flutter_my_chat/models/tender.dart';
 
@@ -21,6 +22,32 @@ class AdminRepo {
       return false;
     }
   }
+
+  static Future<bool> addJob(Job job) async {
+    try {
+      Firestore.instance
+          .document("${DBConstants.DB_JOB}/${job.id}")
+          .setData(job.toJson());
+
+      getTender(job.tenderId).then((QuerySnapshot snapshot) {
+        if (snapshot.documents.isNotEmpty) {
+          Tender tn = new Tender();
+          tn.status = 'Assigned';
+          tn.winner = job.companyId;
+          updateTender(tn, snapshot.documents[0].reference);
+          return true;
+        } else {
+          return false;
+        }
+      });
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+
 
   static Future<bool> addCategory(Category category) async {
     try {
@@ -45,6 +72,28 @@ class AdminRepo {
       return false;
     }
   }
+
+  static getTender(String accountId) {
+    return Firestore.instance
+        .collection(DBConstants.DB_TENDER)
+        .where('id', isEqualTo: accountId)
+        .limit(1)
+        .getDocuments();
+  }
+
+  static Future<bool> updateTender(Tender tender, final index) async {
+    try {
+      Firestore.instance.runTransaction((Transaction transaction) async {
+        DocumentSnapshot snapshot = await transaction.get(index);
+        await transaction.update(snapshot.reference,
+            {"status": tender.status, "winner": tender.winner});
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
 
 //  static Future<bool> addSafetyRule(SafetyRule safetyRule) async {
 //    try {

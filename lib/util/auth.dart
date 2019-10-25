@@ -29,10 +29,11 @@ class Auth implements BaseAuth {
           .document("${DBConstants.DB_COMPANY}/$companyId")
           .get()
           .then((doc) {
-        if (doc.exists)
+        if (doc.exists) {
           exists = true;
-        else
+        } else {
           exists = false;
+        }
       });
       return exists;
     } catch (e) {

@@ -10,13 +10,17 @@ class TendersListView extends StatelessWidget {
   final Tender tender;
   final AnimationController animationController;
   final Animation animation;
+  final String userId;
+  final String userName;
 
   const TendersListView(
       {Key key,
       this.tender,
       this.animationController,
       this.animation,
-      this.callback})
+      this.callback,
+      this.userId,
+      this.userName})
       : super(key: key);
 
   @override
@@ -51,16 +55,23 @@ class TendersListView extends StatelessWidget {
                     child: GestureDetector(
                       // When the child is tapped, show a snackbar.
                       onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ChatCompany(
-                                      peerId: tender.id,
-                                      tender: tender,
-                                    )));
-                        final snackBar = SnackBar(content: Text("Tap"));
-
-                        Scaffold.of(context).showSnackBar(snackBar);
+                        if (DateTime.now().isAfter(DateTime.parse(
+                            tender.dueDate + ' ' + tender.dueTime + ':00'))) {
+                          final snackBar = SnackBar(
+                              content: Text(
+                                  "Pleasenote that this bid has closed, you can nolonger bid on this tender, wait for other ones"));
+                          Scaffold.of(context).showSnackBar(snackBar);
+                        } else {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ChatCompany(
+                                        peerId: tender.id,
+                                        tender: tender,
+                                        userId: userId,
+                                        userName: userName,
+                                      )));
+                        }
                       },
                       // The custom button
                       child: ClipRRect(

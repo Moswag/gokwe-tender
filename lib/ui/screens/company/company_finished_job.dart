@@ -13,22 +13,24 @@ import 'package:flutter_my_chat/models/job.dart';
 import 'package:flutter_my_chat/models/state.dart';
 import 'package:flutter_my_chat/models/tender.dart';
 import 'package:flutter_my_chat/repo/admin_repo.dart';
+import 'package:flutter_my_chat/repo/company_repo.dart';
 import 'package:flutter_my_chat/ui/widgets/loading.dart';
 import 'package:flutter_my_chat/util/alert_dialog.dart';
 import 'package:flutter_my_chat/util/auth.dart';
 import 'package:flutter_my_chat/util/state_widget.dart';
+import 'package:flutter_my_chat/util/validator.dart';
 
 import '../sign_in.dart';
 
-class AddWinner extends StatefulWidget {
-  Tender tender;
-  AddWinner({this.tender});
+class FinishJob extends StatefulWidget {
+  Job job;
+  FinishJob({this.job});
 
   @override
-  State createState() => _AddWinnerState();
+  State createState() => _FinishJobrState();
 }
 
-class _AddWinnerState extends State<AddWinner> {
+class _FinishJobrState extends State<FinishJob> {
   bool _autoValidate = false;
   bool _loadingVisible = false;
   File _image;
@@ -45,33 +47,30 @@ class _AddWinnerState extends State<AddWinner> {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
         await _changeLoadingVisible();
 
-        String company = job.companyName;
-        job.id = company.split("/")[0].toString();
-        job.companyId = company.split("/")[0].toString();
-        job.companyName = company.split("/")[1].toString();
 
-        AdminRepo.addJob(job).then((onValue) {
+
+        CompanyRepo.finishJob(job).then((onValue) {
           if (onValue) {
             AlertDiag.showAlertDialog(
                 context,
                 'Status',
-                'Job to ${job.companyName} Successfully created',
-                RouteConstants.VIEW_CLOSED_TENDERS);
+                'Job  ${job.tenderTitle} Successfully reported finished',
+                RouteConstants.COMPANY_WON_TENDERS);
           } else {
             AlertDiag.showAlertDialog(
                 context,
                 'Status',
-                'Failed to add job, please contact admin',
-                RouteConstants.VIEW_CLOSED_TENDERS);
+                'Failed to update job, please contact admin',
+                RouteConstants.COMPANY_WON_TENDERS);
           }
         });
       } catch (e) {
         print("Sign Up Error: $e");
         String exception = Auth.getExceptionText(e);
         Flushbar(
-                title: "Adding job  failed",
-                message: exception,
-                duration: Duration(seconds: 5))
+            title: "Adding job  failed",
+            message: exception,
+            duration: Duration(seconds: 5))
             .show(context);
       }
     } else {
@@ -131,64 +130,19 @@ class _AddWinnerState extends State<AddWinner> {
               color: Colors.black,
             ), // icon is 48px widget.
           ), // icon is 48px widget.
-          hintText: widget.tender.title,
+          hintText: widget.job.tenderTitle,
           contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
         ),
       );
 
-      final companyField = StreamBuilder<QuerySnapshot>(
-          stream: Firestore.instance
-              .collection(DBConstants.DB_COMPANY)
-              .where('category', isEqualTo: widget.tender.category)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData)
-              return Center(
-                child: CupertinoActivityIndicator(),
-              );
-
-            return Container(
-              padding: EdgeInsets.only(bottom: 16.0),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                      flex: 2,
-                      child: Container(
-                        padding: EdgeInsets.fromLTRB(12.0, 10.0, 10.0, 10.0),
-                        child: Text(
-                          "Company",
-                        ),
-                      )),
-                  new Expanded(
-                    flex: 4,
-                    child: DropdownButton(
-                      value: company,
-                      isDense: true,
-                      onChanged: (valueSelectedByUser) {
-                        _onShopDropItemSelected(valueSelectedByUser);
-                      },
-                      hint: Text('Choose company'),
-                      items: snapshot.data.documents
-                          .map((DocumentSnapshot document) {
-                        return DropdownMenuItem<String>(
-                            value: document.data['id'] +
-                                '/' +
-                                document.data['name'],
-                            child: Text(document.data['name']));
-                      }).toList(),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          });
 
       final amountField = TextFormField(
         autofocus: false,
+        enabled: false,
         keyboardType: TextInputType.numberWithOptions(),
         controller: amountController,
-        // validator: Validator.validateNumber,
+        validator: Validator.validateNumber,
         decoration: InputDecoration(
           prefixIcon: Padding(
             padding: EdgeInsets.only(left: 5.0),
@@ -197,7 +151,27 @@ class _AddWinnerState extends State<AddWinner> {
               color: Colors.black,
             ), // icon is 48px widget.
           ), // icon is 48px widget.
-          hintText: 'Amount',
+          hintText: widget.job.amount.toString(),
+          contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
+        ),
+      );
+
+      final statusField = TextFormField(
+        autofocus: false,
+        enabled: false,
+        keyboardType: TextInputType.numberWithOptions(),
+        controller: amountController,
+        validator: Validator.validateNumber,
+        decoration: InputDecoration(
+          prefixIcon: Padding(
+            padding: EdgeInsets.only(left: 5.0),
+            child: Icon(
+              Icons.transfer_within_a_station,
+              color: Colors.black,
+            ), // icon is 48px widget.
+          ), // icon is 48px widget.
+          hintText: "Awaiting your finishing response",
           contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
         ),
@@ -211,27 +185,16 @@ class _AddWinnerState extends State<AddWinner> {
             color: Colors.blue,
             textColor: Theme.of(context).primaryColorLight,
             child: Text(
-              'Save',
+              'Confirm Finished',
               textScaleFactor: 1.5,
             ),
             onPressed: () {
               setState(() {
                 debugPrint("Save clicked");
-                String tenderId;
-                String tenderTitle;
-                double amount;
-                String workStatus;
-                String paymentStatus;
-                String date;
 
-                Job job = new Job();
-                job.companyName = company;
-                job.tenderTitle = widget.tender.title;
-                job.tenderId = widget.tender.id;
-                job.amount = double.parse(amountController.text);
-                job.workStatus = 'Pending';
-                job.paymentStatus = 'Pending';
-                job.date = DateTime.now().toString();
+                Job job=new Job();
+                job.id=widget.job.id;
+                job.workStatus="Company Finished";
 
                 _addJob(job: job);
               });
@@ -269,9 +232,9 @@ class _AddWinnerState extends State<AddWinner> {
                     SizedBox(height: 48.0),
                     nameField,
                     SizedBox(height: 24.0),
-                    companyField,
-                    SizedBox(height: 24.0),
                     amountField,
+                    SizedBox(height: 24.0),
+                    statusField,
                     SizedBox(height: 24.0),
                     Padding(
                       padding: EdgeInsets.all(16),

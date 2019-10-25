@@ -134,8 +134,16 @@ class AdminDrawer extends StatelessWidget {
               title: new Text('Winners'),
               onTap: () {
                 Navigator.pop(context);
-//                Navigator.of(context)
-//                    .pushNamed(RouteConstants.ADMIN_VIEW_CONVERSIONS);
+                Navigator.of(context)
+                    .pushNamed(RouteConstants.VIEW_CLOSED_TENDERS);
+              },
+            ),
+            new ListTile(
+              leading: Icon(Icons.work),
+              title: new Text('Jobs'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.of(context).pushNamed(RouteConstants.VIEW_JOBS);
               },
             ),
             new ListTile(

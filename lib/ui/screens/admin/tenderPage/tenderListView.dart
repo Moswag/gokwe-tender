@@ -50,16 +50,22 @@ class TendersListView extends StatelessWidget {
                     child: GestureDetector(
                       // When the child is tapped, show a snackbar.
                       onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => Chat(
-                                      peerId: tender.id,
-                                      tender: tender,
-                                    )));
-                        final snackBar = SnackBar(content: Text("Tap"));
+                        if (DateTime.now().isAfter(DateTime.parse(
+                            tender.dueDate + ' ' + tender.dueTime + ':00'))) {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => Chat(
+                                        peerId: tender.id,
+                                        tender: tender,
+                                      )));
+                        } else {
+                          final snackBar = SnackBar(
+                              content: Text(
+                                  "The tender is currently on bid, please note you can not view the bids"));
 
-                        Scaffold.of(context).showSnackBar(snackBar);
+                          Scaffold.of(context).showSnackBar(snackBar);
+                        }
                       },
                       // The custom button
                       child: ClipRRect(

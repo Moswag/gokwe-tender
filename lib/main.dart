@@ -3,7 +3,9 @@ import 'package:flutter_my_chat/root_page.dart';
 import 'package:flutter_my_chat/ui/screens/admin/view_admins.dart';
 import 'package:flutter_my_chat/ui/screens/admin/view_categories.dart';
 import 'package:flutter_my_chat/ui/screens/admin/view_companies.dart';
+import 'package:flutter_my_chat/ui/screens/admin/view_jobs.dart';
 import 'package:flutter_my_chat/ui/screens/admin/view_tenders.dart';
+import 'package:flutter_my_chat/ui/screens/admin/view_tenders_with_winner.dart';
 import 'package:flutter_my_chat/ui/screens/company/view_tenders.dart';
 import 'package:flutter_my_chat/ui/screens/forgot_password.dart';
 import 'package:flutter_my_chat/ui/screens/sign_in.dart';
@@ -12,6 +14,7 @@ import 'package:flutter_my_chat/ui/theme.dart';
 import 'package:flutter_my_chat/util/auth.dart';
 
 import 'constants/routes_constants.dart';
+import 'ui/screens/company/view_my_tenders.dart';
 import 'util/state_widget.dart';
 
 void main() {
@@ -50,9 +53,13 @@ class MyApp extends StatelessWidget {
         RouteConstants.VIEW_COMPANIES: (context) => ViewCompanies(),
         RouteConstants.VIEW_CATEGORIES: (context) => ViewCategories(),
         RouteConstants.VIEW_TENDERS: (context) => ViewTenders(),
+        RouteConstants.VIEW_CLOSED_TENDERS: (context) => ViewTendersClosed(),
+
+        RouteConstants.VIEW_JOBS: (context) => ViewJobs(),
 
         //company
         RouteConstants.COMPANY_VIEW_TENDERS: (context) => CompanyViewTenders(),
+        RouteConstants.COMPANY_WON_TENDERS: (context) => ViewMyTenders(),
       },
     );
   }
